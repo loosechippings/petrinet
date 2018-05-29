@@ -1,12 +1,20 @@
 package loosechippings.petrinet;
 
+import org.hamcrest.CoreMatchers;
+import org.junit.Assert;
+import org.junit.Before;
 import org.junit.Test;
+
+import java.util.List;
 
 public class PetrinetTest {
 
-   @Test
-   public void testPetrinet() {
-      Place receivedTrade = new Place("Received Trade");
+   Petrinet petrinet;
+   Place receivedTrade;
+
+   @Before
+   public void init() {
+      receivedTrade = new Place("Received Trade");
       Place settlementInstructed = new Place("Settlement Instructed");
       Place instructionOpen = new Place("Instruction Open");
       Place receivedStatus = new Place("Received Status");
@@ -16,7 +24,7 @@ public class PetrinetTest {
       Transition t1 = new Transition("t1");
       Transition evaluateStatus = new Transition("Evaluate status");
 
-      Petrinet petrinet = new Petrinet.Builder()
+      petrinet = new Petrinet.Builder()
             .withArc(receivedTrade, instructSettlement)
             .withArc(instructSettlement, settlementInstructed)
             .withArc(settlementInstructed, t1)
@@ -27,6 +35,17 @@ public class PetrinetTest {
             .withArc(evaluateStatus, instructionClosed)
             .build();
 
+   }
+
+   @Test
+   public void testPetrinet() {
       petrinet.generateDot();
+   }
+
+   @Test
+   public void addNewTrade() {
+      petrinet.addToken(receivedTrade);
+      List<Place> placesWithTokens = petrinet.getPlacesWithTokens();
+      Assert.assertThat(placesWithTokens, CoreMatchers.hasItem(receivedTrade));
    }
 }

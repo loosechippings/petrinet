@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class Petrinet {
 
@@ -18,6 +19,19 @@ public class Petrinet {
       this.places = places;
       this.transitions = transitions;
       this.arcs = arcs;
+   }
+
+   public void addToken(Place p) {
+      if (places.contains(p) && !p.hasInputs()) {
+         p.addToken();
+      }
+      else {
+         throw new IllegalStateException("Can only add tokens to input places.");
+      }
+   }
+
+   public List<Place> getPlacesWithTokens() {
+      return places.stream().filter(it -> it.hasAtLeastTokens(1)).collect(Collectors.toList());
    }
 
    public void generateDot() {
