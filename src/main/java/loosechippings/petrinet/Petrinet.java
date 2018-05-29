@@ -30,10 +30,10 @@ public class Petrinet {
          transitions.forEach(it -> printWriter.printf("\"%s\" [shape=box]\n", it.getName()));
          transitions.forEach(transition -> {
             transition.getIncoming().forEach(incomming -> {
-               printWriter.printf("\"%s\" -> \"%s\"\n", incomming.getName(), transition.getName());
+               printWriter.printf("\"%s\" -> \"%s\"\n", incomming.getPlace().getName(), transition.getName());
             });
             transition.getOutgoing().forEach(outgoing -> {
-               printWriter.printf("\"%s\" -> \"%s\"\n", transition.getName(), outgoing.getName());
+               printWriter.printf("\"%s\" -> \"%s\"\n", transition.getName(), outgoing.getPlace().getName());
             });
          });
          printWriter.println("}");

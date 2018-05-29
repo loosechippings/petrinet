@@ -5,8 +5,8 @@ import java.util.List;
 
 public class Transition {
    private final String name;
-   private List<Place> incoming;
-   private List<Place> outgoing;
+   private List<Arc> incoming;
+   private List<Arc> outgoing;
 
    public Transition(String name) {
       this.name = name;
@@ -14,19 +14,19 @@ public class Transition {
       outgoing = new ArrayList<>();
    }
 
-   public void addIncoming(Place place) {
-      incoming.add(place);
+   public void addIncoming(Arc arc) {
+      incoming.add(arc);
    }
 
-   public void addOutgoing(Place place) {
-      outgoing.add(place);
+   public void addOutgoing(Arc arc) {
+      outgoing.add(arc);
    }
 
-   public List<Place> getIncoming() {
+   public List<Arc> getIncoming() {
       return incoming;
    }
 
-   public List<Place> getOutgoing() {
+   public List<Arc> getOutgoing() {
       return outgoing;
    }
 
