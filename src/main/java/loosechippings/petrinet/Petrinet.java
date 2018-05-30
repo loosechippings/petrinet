@@ -57,6 +57,10 @@ public class Petrinet {
       }
    }
 
+   public void fire() {
+      transitions.stream().filter(it -> it.canFire()).forEach(it -> it.fire());
+   }
+
    public static class Builder {
 
       private Set<Place> places;

@@ -20,9 +20,9 @@ public class PetrinetTest {
       Place receivedStatus = new Place("Received Status");
       Place instructionClosed = new Place("Instruction Closed");
 
-      Transition instructSettlement = new Transition("Instruct settlement");
-      Transition t1 = new Transition("t1");
-      Transition evaluateStatus = new Transition("Evaluate status");
+      Transition instructSettlement = new Transition("Instruct settlement", this::foo);
+      Transition t1 = new Transition("t1", this::foo);
+      Transition evaluateStatus = new Transition("Evaluate status", this::foo);
 
       petrinet = new Petrinet.Builder()
             .withArc(receivedTrade, instructSettlement)
@@ -37,6 +37,11 @@ public class PetrinetTest {
 
    }
 
+   public String foo(String name) {
+      System.out.println("triggered: " + name);
+      return null;
+   }
+
    @Test
    public void testPetrinet() {
       petrinet.generateDot();
@@ -46,6 +51,7 @@ public class PetrinetTest {
    public void addNewTrade() {
       petrinet.addToken(receivedTrade);
       List<Place> placesWithTokens = petrinet.getPlacesWithTokens();
+      petrinet.fire();
       Assert.assertThat(placesWithTokens, CoreMatchers.hasItem(receivedTrade));
    }
 }
