@@ -31,7 +31,9 @@ public class Petrinet {
    }
 
    public List<Place> getPlacesWithTokens() {
-      return places.stream().filter(it -> it.hasAtLeastTokens(1)).collect(Collectors.toList());
+      return places.stream()
+            .filter(it -> it.hasAtLeastTokens(1))
+            .collect(Collectors.toList());
    }
 
    public void generateDot() {
@@ -40,8 +42,12 @@ public class Petrinet {
          fileWriter = new FileWriter("target/petrinet.dot");
          PrintWriter printWriter = new PrintWriter(fileWriter);
          printWriter.println("digraph G {");
-         places.forEach(it -> printWriter.printf("\"%s\" [shape=circle]\n", it.getName()));
+         printWriter.printf("subgraph place {\ngraph [shape=circle,color=gray]\nnode [shape=circle,fixedsize=true,width=2]\n");
+         places.forEach(it -> printWriter.printf("\"%s\"\n", it.getName()));
+         printWriter.printf("}\n");
+         printWriter.printf("subgraph transitions {\nnode [shape=rect,height=0.2,width=2]\n");
          transitions.forEach(it -> printWriter.printf("\"%s\" [shape=box]\n", it.getName()));
+         printWriter.printf("}\n");
          transitions.forEach(transition -> {
             transition.getIncoming().forEach(incomming -> {
                printWriter.printf("\"%s\" -> \"%s\"\n", incomming.getPlace().getName(), transition.getName());
@@ -57,8 +63,21 @@ public class Petrinet {
       }
    }
 
-   public void fire() {
+   public void fireOnce() {
       transitions.stream().filter(it -> it.canFire()).forEach(it -> it.fire());
+   }
+
+   public void fireUntilNoneCanFire() {
+      boolean fired;
+      do {
+         fired = false;
+         for (Transition transition : transitions) {
+            if (transition.canFire()) {
+               transition.fire();
+               fired = true;
+            }
+         }
+      } while(fired);
    }
 
    public static class Builder {

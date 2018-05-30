@@ -12,18 +12,23 @@ public class PetrinetTest {
    Petrinet petrinet;
    Place receivedTrade;
    Place settlementInstructed;
+   Place instructionOpen;
+   Place receivedStatus;
 
    @Before
    public void init() {
       receivedTrade = new Place("Received Trade");
       settlementInstructed = new Place("Settlement Instructed");
-      Place instructionOpen = new Place("Instruction Open");
-      Place receivedStatus = new Place("Received Status");
+      instructionOpen = new Place("Instruction Open");
+      receivedStatus = new Place("Received Status");
       Place instructionClosed = new Place("Instruction Closed");
+      Place instructionWithStatusApplied = new Place("Instruction with status");
 
       Transition instructSettlement = new Transition("Instruct settlement", this::foo);
       Transition t1 = new Transition("t1", this::foo);
-      Transition evaluateStatus = new Transition("Evaluate status", this::foo);
+      Transition evaluateStatus = new Transition("Apply status", this::foo);
+      Transition checkIfStatusOpen = new Transition("Check if status open", this::foo);
+      Transition checkIfStatusClosed = new Transition("Check if status closed", this::foo);
 
       petrinet = new Petrinet.Builder()
             .withArc(receivedTrade, instructSettlement)
@@ -32,8 +37,11 @@ public class PetrinetTest {
             .withArc(t1, instructionOpen)
             .withArc(instructionOpen, evaluateStatus)
             .withArc(receivedStatus, evaluateStatus)
-            .withArc(evaluateStatus, instructionOpen)
-            .withArc(evaluateStatus, instructionClosed)
+            .withArc(evaluateStatus, instructionWithStatusApplied)
+            .withArc(instructionWithStatusApplied, checkIfStatusOpen)
+            .withArc(instructionWithStatusApplied, checkIfStatusClosed)
+            .withArc(checkIfStatusOpen, instructionOpen)
+            .withArc(checkIfStatusClosed, instructionClosed)
             .build();
 
    }
@@ -51,8 +59,17 @@ public class PetrinetTest {
    @Test
    public void addNewTrade() {
       petrinet.addToken(receivedTrade);
-      petrinet.fire();
+      petrinet.fireUntilNoneCanFire();
       List<Place> placesWithTokens = petrinet.getPlacesWithTokens();
-      Assert.assertThat(placesWithTokens, CoreMatchers.hasItem(settlementInstructed));
+      Assert.assertThat(placesWithTokens, CoreMatchers.hasItem(instructionOpen));
+   }
+
+   @Test
+   public void addNewTradeAndStatus() {
+      petrinet.addToken(receivedTrade);
+      petrinet.addToken(receivedStatus);
+      petrinet.fireUntilNoneCanFire();
+      List<Place> placesWithTokens = petrinet.getPlacesWithTokens();
+      Assert.assertThat(placesWithTokens, CoreMatchers.hasItem(instructionOpen));
    }
 }
