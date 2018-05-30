@@ -49,4 +49,8 @@ public class Place {
    public void addToken() {
       tokens++;
    }
+
+   public void removeToken() {
+      tokens--;
+   }
 }

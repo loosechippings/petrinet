@@ -44,6 +44,8 @@ public class Transition {
    public void fire() {
       if (canFire()) {
          func.apply(name);
+         incoming.forEach(it -> it.getPlace().removeToken());
+         outgoing.forEach(it -> it.getPlace().addToken());
       }
    }
 }

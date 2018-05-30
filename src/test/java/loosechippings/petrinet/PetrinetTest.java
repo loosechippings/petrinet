@@ -11,11 +11,12 @@ public class PetrinetTest {
 
    Petrinet petrinet;
    Place receivedTrade;
+   Place settlementInstructed;
 
    @Before
    public void init() {
       receivedTrade = new Place("Received Trade");
-      Place settlementInstructed = new Place("Settlement Instructed");
+      settlementInstructed = new Place("Settlement Instructed");
       Place instructionOpen = new Place("Instruction Open");
       Place receivedStatus = new Place("Received Status");
       Place instructionClosed = new Place("Instruction Closed");
@@ -50,8 +51,8 @@ public class PetrinetTest {
    @Test
    public void addNewTrade() {
       petrinet.addToken(receivedTrade);
-      List<Place> placesWithTokens = petrinet.getPlacesWithTokens();
       petrinet.fire();
-      Assert.assertThat(placesWithTokens, CoreMatchers.hasItem(receivedTrade));
+      List<Place> placesWithTokens = petrinet.getPlacesWithTokens();
+      Assert.assertThat(placesWithTokens, CoreMatchers.hasItem(settlementInstructed));
    }
 }
