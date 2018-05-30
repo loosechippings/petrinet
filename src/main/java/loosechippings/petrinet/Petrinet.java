@@ -21,15 +21,6 @@ public class Petrinet {
       this.arcs = arcs;
    }
 
-   public void addToken(Place p) {
-      if (places.contains(p) && !p.hasInputs()) {
-         p.addToken();
-      }
-      else {
-         throw new IllegalStateException("Can only add tokens to input places.");
-      }
-   }
-
    public List<Place> getPlacesWithTokens() {
       return places.stream()
             .filter(it -> it.hasAtLeastTokens(1))

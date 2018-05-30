@@ -1,16 +1,18 @@
 package loosechippings.petrinet;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 
-public class Transition {
+public class Transition<T> {
    private final String name;
    private List<Arc> incoming;
    private List<Arc> outgoing;
-   private Function<String, String> func;
+   private Function<Map<Class, Object>, T> func;
 
-   public Transition(String name, Function<String, String> func) {
+   public Transition(String name, Function<Map<Class, Object>, T> func) {
       this.name = name;
       this.func = func;
       incoming = new ArrayList<>();
@@ -43,9 +45,13 @@ public class Transition {
 
    public void fire() {
       if (canFire()) {
-         func.apply(name);
-         incoming.forEach(it -> it.getPlace().removeToken());
-         outgoing.forEach(it -> it.getPlace().addToken());
+         Map<Class, Object> tokens = new HashMap<>();
+         incoming.forEach(it -> {
+            Object i = it.getPlace().removeToken();
+            tokens.put(i.getClass(), i);
+         });
+         Object o = func.apply(tokens);
+         outgoing.forEach(it -> it.getPlace().addToken(o));
       }
    }
 }

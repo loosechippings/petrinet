@@ -1,34 +1,38 @@
 package loosechippings.petrinet;
 
+import domain.Instruction;
+import domain.StatusUpdate;
+import domain.Trade;
 import org.hamcrest.CoreMatchers;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.List;
+import java.util.Map;
 
 public class PetrinetTest {
 
    Petrinet petrinet;
-   Place receivedTrade;
-   Place settlementInstructed;
-   Place instructionOpen;
-   Place receivedStatus;
+   Place<Trade> receivedTrade;
+   Place<Instruction> settlementInstructed;
+   Place<Instruction> instructionOpen;
+   Place<StatusUpdate> receivedStatus;
 
    @Before
    public void init() {
-      receivedTrade = new Place("Received Trade");
-      settlementInstructed = new Place("Settlement Instructed");
-      instructionOpen = new Place("Instruction Open");
-      receivedStatus = new Place("Received Status");
-      Place instructionClosed = new Place("Instruction Closed");
-      Place instructionWithStatusApplied = new Place("Instruction with status");
+      receivedTrade = new Place<>("Received Trade");
+      settlementInstructed = new Place<>("Settlement Instructed");
+      instructionOpen = new Place<>("Instruction Open");
+      receivedStatus = new Place<>("Received Status");
+      Place<Instruction> instructionClosed = new Place<>("Instruction Closed");
+      Place<Instruction> instructionWithStatusApplied = new Place<>("Instruction with status");
 
-      Transition instructSettlement = new Transition("Instruct settlement", this::foo);
-      Transition t1 = new Transition("t1", this::foo);
-      Transition evaluateStatus = new Transition("Apply status", this::foo);
-      Transition checkIfStatusOpen = new Transition("Check if status open", this::foo);
-      Transition checkIfStatusClosed = new Transition("Check if status closed", this::foo);
+      Transition<Instruction> instructSettlement = new Transition<>("Instruct settlement", this::instructTrade);
+      Transition<Instruction> t1 = new Transition<>("t1", this::foo);
+      Transition<Instruction> evaluateStatus = new Transition<>("Apply status", this::foo);
+      Transition<Instruction> checkIfStatusOpen = new Transition<>("Check if status open", this::foo);
+      Transition<Instruction> checkIfStatusClosed = new Transition<>("Check if status closed", this::foo);
 
       petrinet = new Petrinet.Builder()
             .withArc(receivedTrade, instructSettlement)
@@ -46,9 +50,14 @@ public class PetrinetTest {
 
    }
 
-   public String foo(String name) {
-      System.out.println("triggered: " + name);
-      return null;
+   public Instruction instructTrade(Map<Class, Object> tokens) {
+      System.out.println("creating Instruction from Trade");
+      return new Instruction();
+   }
+
+   public Instruction foo(Map<Class, Object> tokens) {
+      System.out.println("triggered foo");
+      return Instruction.class.cast(tokens.get(Instruction.class));
    }
 
    @Test
@@ -58,7 +67,7 @@ public class PetrinetTest {
 
    @Test
    public void addNewTrade() {
-      petrinet.addToken(receivedTrade);
+      receivedTrade.addToken(new Trade());
       petrinet.fireUntilNoneCanFire();
       List<Place> placesWithTokens = petrinet.getPlacesWithTokens();
       Assert.assertThat(placesWithTokens, CoreMatchers.hasItem(instructionOpen));
@@ -66,8 +75,8 @@ public class PetrinetTest {
 
    @Test
    public void addNewTradeAndStatus() {
-      petrinet.addToken(receivedTrade);
-      petrinet.addToken(receivedStatus);
+      receivedTrade.addToken(new Trade());
+      receivedStatus.addToken(new StatusUpdate());
       petrinet.fireUntilNoneCanFire();
       List<Place> placesWithTokens = petrinet.getPlacesWithTokens();
       Assert.assertThat(placesWithTokens, CoreMatchers.hasItem(instructionOpen));

@@ -3,10 +3,10 @@ package loosechippings.petrinet;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Place {
+public class Place<T> {
 
    private final String name;
-   private int tokens = 0;
+   private List<T> tokens;
    private int weight = 1;
    private int maxCapacity = 1;
    private List<Arc> outboundArc;
@@ -22,14 +22,6 @@ public class Place {
       return name;
    }
 
-   public void addOutboundArc(Arc a) {
-      outboundArc.add(a);
-   }
-
-   public void addInboundArc(Arc a) {
-      inboundArc.add(a);
-   }
-
    public boolean hasInputs() {
       return inboundArc.size() > 0;
    }
@@ -39,18 +31,21 @@ public class Place {
    }
 
    public boolean hasCapacityOf(int capacity) {
-      return maxCapacity - tokens > capacity;
+      return maxCapacity - tokens.size() > capacity;
    }
 
    public boolean hasAtLeastTokens(int tokens) {
-      return this.tokens >= tokens;
+      return this.tokens.size() >= tokens;
    }
 
-   public void addToken() {
-      tokens++;
+   public void addToken(T token) {
+      if (hasInputs()) {
+         throw new IllegalStateException("Can only add tokens to input places.");
+      }
+      tokens.add(token);
    }
 
-   public void removeToken() {
-      tokens--;
+   public T removeToken() {
+      return tokens.remove(0);
    }
 }
