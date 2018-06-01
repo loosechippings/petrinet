@@ -1,5 +1,7 @@
 package loosechippings.petrinet;
 
+import domain.Trade;
+
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -12,7 +14,7 @@ import java.util.stream.Collectors;
 public class Petrinet {
 
    private final Set<Place> places;
-   private final Set<Transition> transitions;
+   private final Set<Transition<?>> transitions;
    private final List<Arc> arcs;
 
    private Petrinet(Set places, Set transitions, List arcs) {
@@ -40,11 +42,11 @@ public class Petrinet {
          transitions.forEach(it -> printWriter.printf("\"%s\" [shape=box]\n", it.getName()));
          printWriter.printf("}\n");
          transitions.forEach(transition -> {
-            transition.getIncoming().forEach(incomming -> {
-               printWriter.printf("\"%s\" -> \"%s\"\n", incomming.getPlace().getName(), transition.getName());
+            transition.getIncoming().forEach(arc -> {
+               printWriter.printf("\"%s\" -> \"%s\"\n", arc.getPlace().getName() , transition.getName());
             });
-            transition.getOutgoing().forEach(outgoing -> {
-               printWriter.printf("\"%s\" -> \"%s\"\n", transition.getName(), outgoing.getPlace().getName());
+            transition.getOutgoing().forEach(arc -> {
+               printWriter.printf("\"%s\" -> \"%s\"\n", transition.getName(), arc.getPlace().getName());
             });
          });
          printWriter.println("}");
@@ -58,6 +60,8 @@ public class Petrinet {
       transitions.stream().filter(it -> it.canFire()).forEach(it -> it.fire());
    }
 
+   // todo: this should get the set of transitions that can fire and then fire them
+   // otherwise we risk firing dependant transitions in the same round of execution
    public void fireUntilNoneCanFire() {
       boolean fired;
       do {

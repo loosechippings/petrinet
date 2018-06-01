@@ -15,6 +15,7 @@ public class Place<T> {
    public Place(String name) {
       inboundArc = new ArrayList<>();
       outboundArc = new ArrayList<>();
+      tokens = new ArrayList<>();
       this.name = name;
    }
 

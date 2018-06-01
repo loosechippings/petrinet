@@ -52,6 +52,9 @@ public class PetrinetTest {
 
    public Instruction instructTrade(Map<Class, Object> tokens) {
       System.out.println("creating Instruction from Trade");
+      Trade t = Trade.class.cast(tokens.get(Trade.class));
+      Instruction i = new Instruction();
+      i.setTradeReference(t.getReference());
       return new Instruction();
    }
 
