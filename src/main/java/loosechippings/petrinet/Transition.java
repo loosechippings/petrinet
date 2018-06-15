@@ -10,9 +10,9 @@ public class Transition<T> {
    private final String name;
    private List<Arc> incoming;
    private List<Arc> outgoing;
-   private Function<Map<Class, Object>, T> func;
+   private Function<Context, T> func;
 
-   public Transition(String name, Function<Map<Class, Object>, T> func) {
+   public Transition(String name, Function<Context, T> func) {
       this.name = name;
       this.func = func;
       incoming = new ArrayList<>();
@@ -45,12 +45,11 @@ public class Transition<T> {
 
    public void fire() {
       if (canFire()) {
-         Map<Class, Object> tokens = new HashMap<>();
-         incoming.forEach(it -> {
-            Object i = it.getPlace().removeToken();
-            tokens.put(i.getClass(), i);
-         });
-         Object o = func.apply(tokens);
+         Context context = new Context();
+         for (Arc arc : incoming) {
+            context.addToken(arc.getPlace().getDescriptor(), arc.getPlace().removeToken());
+         }
+         Object o = func.apply(context);
          outgoing.forEach(it -> it.getPlace().addToken(o));
       }
    }

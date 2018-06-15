@@ -3,13 +3,13 @@ package loosechippings.petrinet;
 import domain.Instruction;
 import domain.StatusUpdate;
 import domain.Trade;
-import org.hamcrest.CoreMatchers;
-import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.List;
-import java.util.Map;
+
+import static org.hamcrest.CoreMatchers.hasItem;
+import static org.junit.Assert.assertThat;
 
 public class PetrinetTest {
 
@@ -18,49 +18,86 @@ public class PetrinetTest {
    Place<Instruction> settlementInstructed;
    Place<Instruction> instructionOpen;
    Place<StatusUpdate> receivedStatus;
+   Place<Instruction> instructionClosed;
 
    @Before
    public void init() {
-      receivedTrade = new Place<>("Received Trade");
-      settlementInstructed = new Place<>("Settlement Instructed");
-      instructionOpen = new Place<>("Instruction Open");
-      receivedStatus = new Place<>("Received Status");
-      Place<Instruction> instructionClosed = new Place<>("Instruction Closed");
-      Place<Instruction> instructionWithStatusApplied = new Place<>("Instruction with status");
+      receivedTrade = new Place<>("Received Trade", new TokenDescriptor<>(Trade.class, "trade"));
+      settlementInstructed = new Place<>("Settlement Instructed", new TokenDescriptor<>(Instruction.class, "instruction"));
+      instructionOpen = new Place<>("Instruction Open", new TokenDescriptor<>(Instruction.class, "instruction"));
+      receivedStatus = new Place<>("Received Status", new TokenDescriptor<>(StatusUpdate.class, "statusUpdate"));
+      instructionClosed = new Place<>("Instruction Closed", new TokenDescriptor<>(Instruction.class, "instruction"));
+      Place<Instruction> instructionWithStatusApplied = new Place<>("Instruction with status", new TokenDescriptor<>(Instruction.class, "instruction"));
 
       Transition<Instruction> instructSettlement = new Transition<>("Instruct settlement", this::instructTrade);
       Transition<Instruction> t1 = new Transition<>("t1", this::foo);
-      Transition<Instruction> evaluateStatus = new Transition<>("Apply status", this::foo);
-      Transition<Instruction> checkIfStatusOpen = new Transition<>("Check if status open", this::foo);
-      Transition<Instruction> checkIfStatusClosed = new Transition<>("Check if status closed", this::foo);
+      Transition<Instruction> applyStatus = new Transition<>("Apply status", this::applyStatus);
+      Transition<Instruction> checkIfStatusOpen = new Transition<>("Check if status open", this::checkIfStatusOpen);
+      Transition<Instruction> checkIfStatusClosed = new Transition<>("Check if status closed", this::checkIfStatusClosed);
+
+      Arc<Instruction> statusOpenArc = new Arc<>(instructionWithStatusApplied, checkIfStatusOpen, this::statusIsOpen);
+      Arc<Instruction> statusClosedArc = new Arc<>(instructionWithStatusApplied, checkIfStatusClosed, this::statusIsClosed);
 
       petrinet = new Petrinet.Builder()
             .withArc(receivedTrade, instructSettlement)
             .withArc(instructSettlement, settlementInstructed)
             .withArc(settlementInstructed, t1)
             .withArc(t1, instructionOpen)
-            .withArc(instructionOpen, evaluateStatus)
-            .withArc(receivedStatus, evaluateStatus)
-            .withArc(evaluateStatus, instructionWithStatusApplied)
-            .withArc(instructionWithStatusApplied, checkIfStatusOpen)
-            .withArc(instructionWithStatusApplied, checkIfStatusClosed)
+            .withArc(instructionOpen, applyStatus)
+            .withArc(receivedStatus, applyStatus)
+            .withArc(applyStatus, instructionWithStatusApplied)
+            .withArc(statusOpenArc)
+            .withArc(statusClosedArc)
             .withArc(checkIfStatusOpen, instructionOpen)
             .withArc(checkIfStatusClosed, instructionClosed)
             .build();
 
    }
 
-   public Instruction instructTrade(Map<Class, Object> tokens) {
-      System.out.println("creating Instruction from Trade");
-      Trade t = Trade.class.cast(tokens.get(Trade.class));
-      Instruction i = new Instruction();
-      i.setTradeReference(t.getReference());
-      return new Instruction();
+   public Boolean statusIsOpen(Instruction i) {
+      return !i.getStatus().equals(Instruction.Status.SETTLED);
    }
 
-   public Instruction foo(Map<Class, Object> tokens) {
+   public Boolean statusIsClosed(Instruction i) {
+      return !statusIsOpen(i);
+   }
+
+   public Instruction instructTrade(Context context) {
+      System.out.println("creating Instruction from Trade");
+      Trade t = Trade.class.cast(context.getToken(new TokenDescriptor<>(Trade.class, "trade")));
+      Instruction i = new Instruction();
+      i.setTradeReference(t.getReference());
+      i.setStatus(Instruction.Status.SENT);
+      return i;
+   }
+
+   public Instruction foo(Context context) {
       System.out.println("triggered foo");
-      return Instruction.class.cast(tokens.get(Instruction.class));
+      return context.getToken(new TokenDescriptor<>(Instruction.class, "instruction"));
+   }
+
+   public Instruction applyStatus(Context context) {
+      System.out.println("triggered applyStatus");
+      Instruction i = context.getToken(new TokenDescriptor<>(Instruction.class, "instruction"));
+      StatusUpdate s = context.getToken(new TokenDescriptor<>(StatusUpdate.class, "statusUpdate"));
+      switch (s.getStatus()) {
+         case MATCHED:i.setStatus(Instruction.Status.MATCHED);
+            break;
+         case SETTLED:i.setStatus(Instruction.Status.SETTLED);
+            break;
+         default:
+      }
+      return i;
+   }
+
+   public Instruction checkIfStatusOpen(Context context) {
+      System.out.println("triggered checkIfStatusOpen");
+      return context.getToken(new TokenDescriptor<>(Instruction.class, "instruction"));
+   }
+
+   public Instruction checkIfStatusClosed(Context context) {
+      System.out.println("triggered checkIfStatusClosed");
+      return context.getToken(new TokenDescriptor<>(Instruction.class, "instruction"));
    }
 
    @Test
@@ -73,15 +110,17 @@ public class PetrinetTest {
       receivedTrade.addToken(new Trade());
       petrinet.fireUntilNoneCanFire();
       List<Place> placesWithTokens = petrinet.getPlacesWithTokens();
-      Assert.assertThat(placesWithTokens, CoreMatchers.hasItem(instructionOpen));
+      assertThat(placesWithTokens, hasItem(instructionOpen));
    }
 
    @Test
    public void addNewTradeAndStatus() {
       receivedTrade.addToken(new Trade());
-      receivedStatus.addToken(new StatusUpdate());
+      StatusUpdate s = new StatusUpdate();
+      s.setStatus(StatusUpdate.Status.SETTLED);
+      receivedStatus.addToken(s);
       petrinet.fireUntilNoneCanFire();
       List<Place> placesWithTokens = petrinet.getPlacesWithTokens();
-      Assert.assertThat(placesWithTokens, CoreMatchers.hasItem(instructionOpen));
+      assertThat(placesWithTokens, hasItem(instructionClosed));
    }
 }

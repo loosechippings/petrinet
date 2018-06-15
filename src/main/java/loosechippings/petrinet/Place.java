@@ -11,16 +11,22 @@ public class Place<T> {
    private int maxCapacity = 1;
    private List<Arc> outboundArc;
    private List<Arc> inboundArc;
+   private TokenDescriptor<T> descriptor;
 
-   public Place(String name) {
+   public Place(String name, TokenDescriptor<T> descriptor) {
       inboundArc = new ArrayList<>();
       outboundArc = new ArrayList<>();
       tokens = new ArrayList<>();
+      this.descriptor = descriptor;
       this.name = name;
    }
 
    public String getName() {
       return name;
+   }
+
+   public TokenDescriptor<T> getDescriptor() {
+      return descriptor;
    }
 
    public boolean hasInputs() {
@@ -35,7 +41,7 @@ public class Place<T> {
       return maxCapacity - tokens.size() > capacity;
    }
 
-   public boolean hasAtLeastTokens(int tokens) {
+   public boolean numberOfTokensGreaterThan(int tokens) {
       return this.tokens.size() >= tokens;
    }
 
@@ -46,7 +52,16 @@ public class Place<T> {
       tokens.add(token);
    }
 
+   public T peekToken() {
+      return tokens.get(0);
+   }
+
    public T removeToken() {
       return tokens.remove(0);
+   }
+
+   @Override
+   public String toString() {
+      return String.format("place: %s, token count: %d", name, tokens.size());
    }
 }

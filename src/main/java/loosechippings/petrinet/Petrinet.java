@@ -1,7 +1,5 @@
 package loosechippings.petrinet;
 
-import domain.Trade;
-
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -9,6 +7,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class Petrinet {
@@ -25,7 +24,7 @@ public class Petrinet {
 
    public List<Place> getPlacesWithTokens() {
       return places.stream()
-            .filter(it -> it.hasAtLeastTokens(1))
+            .filter(it -> it.numberOfTokensGreaterThan(1))
             .collect(Collectors.toList());
    }
 
@@ -72,6 +71,8 @@ public class Petrinet {
                fired = true;
             }
          }
+
+         System.out.println(getPlacesWithTokens());
       } while(fired);
    }
 
@@ -85,6 +86,13 @@ public class Petrinet {
          this.places = new HashSet<>();
          this.transitions = new HashSet<>();
          this.arcs = new ArrayList<>();
+      }
+
+      public Builder withArc(Arc arc) {
+         places.add(arc.getPlace());
+         transitions.add(arc.getTransition());
+         arcs.add(arc);
+         return this;
       }
 
       public Builder withArc(Place p, Transition t) {
