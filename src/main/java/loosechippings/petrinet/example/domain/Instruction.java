@@ -1,4 +1,4 @@
-package domain;
+package loosechippings.petrinet.example.domain;
 
 public class Instruction {
 

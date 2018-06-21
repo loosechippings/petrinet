@@ -21,15 +21,15 @@ public class Place<T> {
       this.name = name;
    }
 
-   public String getName() {
+   String getName() {
       return name;
    }
 
-   public TokenDescriptor<T> getDescriptor() {
+   TokenDescriptor<T> getDescriptor() {
       return descriptor;
    }
 
-   public boolean hasInputs() {
+   boolean hasInputs() {
       return inboundArc.size() > 0;
    }
 
@@ -37,11 +37,11 @@ public class Place<T> {
       return outboundArc.size() > 0;
    }
 
-   public boolean hasCapacityOf(int capacity) {
+   boolean hasCapacityOf(int capacity) {
       return maxCapacity - tokens.size() > capacity;
    }
 
-   public boolean numberOfTokensGreaterThan(int tokens) {
+   boolean numberOfTokensGreaterThan(int tokens) {
       return this.tokens.size() >= tokens;
    }
 
@@ -52,11 +52,11 @@ public class Place<T> {
       tokens.add(token);
    }
 
-   public T peekToken() {
+   T peekToken() {
       return tokens.get(0);
    }
 
-   public T removeToken() {
+   T removeToken() {
       return tokens.remove(0);
    }
 

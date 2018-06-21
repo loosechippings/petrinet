@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class Petrinet {
@@ -22,16 +21,16 @@ public class Petrinet {
       this.arcs = arcs;
    }
 
-   public List<Place> getPlacesWithTokens() {
+   public List<Place> getMarkedPlaces() {
       return places.stream()
             .filter(it -> it.numberOfTokensGreaterThan(1))
             .collect(Collectors.toList());
    }
 
-   public void generateDot() {
+   public void generateDot(String filepath) {
       FileWriter fileWriter = null;
       try {
-         fileWriter = new FileWriter("target/petrinet.dot");
+         fileWriter = new FileWriter(filepath);
          PrintWriter printWriter = new PrintWriter(fileWriter);
          printWriter.println("digraph G {");
          printWriter.printf("subgraph place {\ngraph [shape=circle,color=gray]\nnode [shape=circle,fixedsize=true,width=2]\n");
@@ -72,7 +71,7 @@ public class Petrinet {
             }
          }
 
-         System.out.println(getPlacesWithTokens());
+         System.out.println(getMarkedPlaces());
       } while(fired);
    }
 

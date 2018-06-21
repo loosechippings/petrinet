@@ -1,31 +1,26 @@
-package loosechippings.petrinet;
+package loosechippings.petrinet.example;
 
-import domain.Instruction;
-import domain.StatusUpdate;
-import domain.Trade;
-import org.junit.Before;
-import org.junit.Test;
+import loosechippings.petrinet.*;
+import loosechippings.petrinet.example.domain.Instruction;
+import loosechippings.petrinet.example.domain.StatusUpdate;
+import loosechippings.petrinet.example.domain.Trade;
 
 import java.util.List;
 
-import static org.hamcrest.CoreMatchers.hasItem;
-import static org.junit.Assert.assertThat;
+public class TradePetrinet {
 
-public class PetrinetTest {
-
-   Petrinet petrinet;
+   private Petrinet petrinet;
    Place<Trade> receivedTrade;
    Place<Instruction> settlementInstructed;
    Place<Instruction> instructionOpen;
    Place<StatusUpdate> receivedStatus;
    Place<Instruction> instructionClosed;
 
-   TokenDescriptor<Trade> tradeTokenDescriptor = new TokenDescriptor<>(Trade.class, "trade");
-   TokenDescriptor<Instruction> instructionTokenDescriptor = new TokenDescriptor<>(Instruction.class, "instruction");
-   TokenDescriptor<StatusUpdate> statusUpdateTokenDescriptor = new TokenDescriptor<>(StatusUpdate.class, "statusUpdate");
+   private TokenDescriptor<Trade> tradeTokenDescriptor = new TokenDescriptor<>(Trade.class, "trade");
+   private TokenDescriptor<Instruction> instructionTokenDescriptor = new TokenDescriptor<>(Instruction.class, "instruction");
+   private TokenDescriptor<StatusUpdate> statusUpdateTokenDescriptor = new TokenDescriptor<>(StatusUpdate.class, "statusUpdate");
 
-   @Before
-   public void init() {
+   public TradePetrinet() {
       receivedTrade = new Place<>("Received Trade", tradeTokenDescriptor);
       settlementInstructed = new Place<>("Settlement Instructed", instructionTokenDescriptor);
       instructionOpen = new Place<>("Instruction Open", instructionTokenDescriptor);
@@ -55,7 +50,6 @@ public class PetrinetTest {
             .withArc(statusIsOpen, instructionOpen)
             .withArc(statusIsClosed, instructionClosed)
             .build();
-
    }
 
    public Boolean statusIsOpen(Instruction i) {
@@ -104,38 +98,23 @@ public class PetrinetTest {
       return context.getToken(instructionTokenDescriptor);
    }
 
-   @Test
-   public void testPetrinet() {
-      petrinet.generateDot();
+   public void generateDot(String filepath) {
+      petrinet.generateDot(filepath);
    }
 
-   @Test
-   public void addNewTrade() {
-      receivedTrade.addToken(new Trade());
-      petrinet.fireUntilNoneCanFire();
-      List<Place> placesWithTokens = petrinet.getPlacesWithTokens();
-      assertThat(placesWithTokens, hasItem(instructionOpen));
+   public void receiveTrade(Trade trade) {
+      receivedTrade.addToken(trade);
    }
 
-   @Test
-   public void addNewTradeAndSettledStatus() {
-      receivedTrade.addToken(new Trade());
-      StatusUpdate s = new StatusUpdate();
-      s.setStatus(StatusUpdate.Status.SETTLED);
-      receivedStatus.addToken(s);
-      petrinet.fireUntilNoneCanFire();
-      List<Place> placesWithTokens = petrinet.getPlacesWithTokens();
-      assertThat(placesWithTokens, hasItem(instructionClosed));
+   public void receiveStatus(StatusUpdate statusUpdate) {
+      receivedStatus.addToken(statusUpdate);
    }
 
-   @Test
-   public void addNewTradeAndNotSettledStatus() {
-      receivedTrade.addToken(new Trade());
-      StatusUpdate s = new StatusUpdate();
-      s.setStatus(StatusUpdate.Status.MATCHED);
-      receivedStatus.addToken(s);
+   public void fire() {
       petrinet.fireUntilNoneCanFire();
-      List<Place> placesWithTokens = petrinet.getPlacesWithTokens();
-      assertThat(placesWithTokens, hasItem(instructionOpen));
+   }
+
+   public List<Place> getMarkedPlaces() {
+      return petrinet.getMarkedPlaces();
    }
 }
