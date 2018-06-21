@@ -36,11 +36,11 @@ public class PetrinetTest {
       Transition<Instruction> instructSettlement = new Transition<>("Instruct settlement", this::instructTrade);
       Transition<Instruction> t1 = new Transition<>("t1", this::foo);
       Transition<Instruction> applyStatus = new Transition<>("Apply status", this::applyStatus);
-      Transition<Instruction> checkIfStatusOpen = new Transition<>("Check if status open", this::checkIfStatusOpen);
-      Transition<Instruction> checkIfStatusClosed = new Transition<>("Check if status closed", this::checkIfStatusClosed);
+      Transition<Instruction> statusIsOpen = new Transition<>("Status is open", this::checkIfStatusOpen);
+      Transition<Instruction> statusIsClosed = new Transition<>("Status is closed", this::checkIfStatusClosed);
 
-      Arc<Instruction> statusOpenArc = new Arc<>(instructionWithStatusApplied, checkIfStatusOpen, this::statusIsOpen);
-      Arc<Instruction> statusClosedArc = new Arc<>(instructionWithStatusApplied, checkIfStatusClosed, this::statusIsClosed);
+      Arc<Instruction> statusOpenArc = new Arc<>(instructionWithStatusApplied, statusIsOpen, this::statusIsOpen);
+      Arc<Instruction> statusClosedArc = new Arc<>(instructionWithStatusApplied, statusIsClosed, this::statusIsClosed);
 
       petrinet = new Petrinet.Builder()
             .withArc(receivedTrade, instructSettlement)
@@ -52,8 +52,8 @@ public class PetrinetTest {
             .withArc(applyStatus, instructionWithStatusApplied)
             .withArc(statusOpenArc)
             .withArc(statusClosedArc)
-            .withArc(checkIfStatusOpen, instructionOpen)
-            .withArc(checkIfStatusClosed, instructionClosed)
+            .withArc(statusIsOpen, instructionOpen)
+            .withArc(statusIsClosed, instructionClosed)
             .build();
 
    }
@@ -118,7 +118,7 @@ public class PetrinetTest {
    }
 
    @Test
-   public void addNewTradeAndStatus() {
+   public void addNewTradeAndSettledStatus() {
       receivedTrade.addToken(new Trade());
       StatusUpdate s = new StatusUpdate();
       s.setStatus(StatusUpdate.Status.SETTLED);
@@ -126,5 +126,16 @@ public class PetrinetTest {
       petrinet.fireUntilNoneCanFire();
       List<Place> placesWithTokens = petrinet.getPlacesWithTokens();
       assertThat(placesWithTokens, hasItem(instructionClosed));
+   }
+
+   @Test
+   public void addNewTradeAndNotSettledStatus() {
+      receivedTrade.addToken(new Trade());
+      StatusUpdate s = new StatusUpdate();
+      s.setStatus(StatusUpdate.Status.MATCHED);
+      receivedStatus.addToken(s);
+      petrinet.fireUntilNoneCanFire();
+      List<Place> placesWithTokens = petrinet.getPlacesWithTokens();
+      assertThat(placesWithTokens, hasItem(instructionOpen));
    }
 }
