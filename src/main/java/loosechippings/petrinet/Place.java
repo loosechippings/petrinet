@@ -1,6 +1,7 @@
 package loosechippings.petrinet;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class Place<T> {
@@ -52,6 +53,10 @@ public class Place<T> {
       tokens.add(token);
    }
 
+   public List<T> getTokens() {
+      return Collections.unmodifiableList(tokens);
+   }
+
    T peekToken() {
       return tokens.get(0);
    }
@@ -63,5 +68,9 @@ public class Place<T> {
    @Override
    public String toString() {
       return String.format("place: %s, token count: %d", name, tokens.size());
+   }
+
+   public int getTokenCount() {
+      return tokens.size();
    }
 }

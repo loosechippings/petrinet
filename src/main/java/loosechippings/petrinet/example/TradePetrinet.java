@@ -66,6 +66,7 @@ public class TradePetrinet {
       Instruction i = new Instruction();
       i.setTradeReference(t.getReference());
       i.setStatus(Instruction.Status.SENT);
+      i.setInstructionReference(String.format("%s:%d", t.getReference(), t.getVersion())) ;
       return i;
    }
 

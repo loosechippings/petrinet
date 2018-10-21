@@ -4,6 +4,7 @@ public class Instruction {
 
    private String tradeReference;
    private Status status;
+   private String instructionReference;
 
    public String getTradeReference() {
       return tradeReference;
@@ -19,6 +20,14 @@ public class Instruction {
 
    public void setStatus(Status status) {
       this.status = status;
+   }
+
+   public String getInstructionReference() {
+      return instructionReference;
+   }
+
+   public void setInstructionReference(String instructionReference) {
+      this.instructionReference = instructionReference;
    }
 
    public enum Status {
